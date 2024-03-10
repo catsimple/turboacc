@@ -1,20 +1,20 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_NAME:=tcp-bbr-mod
+PKG_NAME:=tcp-bbr-v3
 PKG_RELEASE:=3
 
 include $(INCLUDE_DIR)/package.mk
 
-define KernelPackage/tcp-bbr-mod
+define KernelPackage/tcp-bbr-v3
 	SUBMENU:=Network Support
 	TITLE:=BBR TCP congestion control V3 from Google (test)
 	DEPENDS:=@!LINUX_4_13
-	FILES:=$(PKG_BUILD_DIR)/tcp_bbr_mod.ko
-	AUTOLOAD:=$(call AutoProbe,tcp_bbr_mod)
+	FILES:=$(PKG_BUILD_DIR)/tcp_bbr_v3.ko
+	AUTOLOAD:=$(call AutoProbe,tcp_bbr_v3)
 endef
 
-define KernelPackage/tcp-bbr-mod/description
+define KernelPackage/tcp-bbr-v3/description
 	 Kernel module for BBR V3 (Bottleneck Bandwidth and RTT) TCP congestion
  control. It requires the fq ("Fair Queue") pacing packet scheduler.
  For kernel 4.13+, TCP internal pacing is implemented as fallback.
@@ -45,4 +45,4 @@ define Build/Compile
 	modules
 endef
 
-$(eval $(call KernelPackage,tcp-bbr-mod))
+$(eval $(call KernelPackage,tcp-bbr-v3))
