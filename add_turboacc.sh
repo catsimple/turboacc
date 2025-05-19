@@ -51,49 +51,13 @@ if [ -d "./package/turboacc" ]; then
     fi
 fi
 
-SOURCE_REPO="https://github.com/chenmozhijin/turboacc"
-SOURCE_BRANCH="package"
-TARGET_DIR="$TMPDIR/turboacc/nft-fullcone"
-TEMP_CLONE_DIR="$TMPDIR/turboacc/turboacc_temp_clone"
-
-rm -rf "$TARGET_DIR" "$TEMP_CLONE_DIR"
-
-echo "Cloning $SOURCE_REPO branch $SOURCE_BRANCH into $TEMP_CLONE_DIR..."
-git clone --depth=1 --single-branch --branch "$SOURCE_BRANCH" "$SOURCE_REPO" "$TEMP_CLONE_DIR" || {
-    echo "Error: Failed to clone $SOURCE_REPO branch $SOURCE_BRANCH"
-    exit 1
-}
-
-if [ ! -d "$TEMP_CLONE_DIR/package/nft-fullcone" ]; then
-    echo "Error: '$TEMP_CLONE_DIR/package/nft-fullcone' directory not found after cloning."
-    rm -rf "$TEMP_CLONE_DIR"
-    exit 1
-fi
-
-mkdir -p "$TARGET_DIR" || {
-    echo "Error: Failed to create target directory $TARGET_DIR"
-    rm -rf "$TEMP_CLONE_DIR"
-    exit 1
-}
-
-echo "Moving '$TEMP_CLONE_DIR/package/nft-fullcone' to '$TARGET_DIR'..."
-mv "$TEMP_CLONE_DIR/package/nft-fullcone" "$TARGET_DIR" || {
-    echo "Error: Failed to move nft-fullcone directory to $TARGET_DIR"
-    rm -rf "$TEMP_CLONE_DIR" 
-    exit 1
-}
-
-echo "Cleaning up temporary directory $TEMP_CLONE_DIR..."
-rm -rf "$TEMP_CLONE_DIR"
-
-echo "Successfully updated nft-fullcone source from $SOURCE_REPO branch $SOURCE_BRANCH."
-
 git clone --depth=1 --single-branch https://github.com/chenmozhijin/turboacc "$TMPDIR/turboacc/turboacc" || exit 1
 if [ -n "$LOCAL_PACKAGE" ]; then
     echo "Using local package: $LOCAL_PACKAGE"
     cp -RT "$LOCAL_PACKAGE" "$TMPDIR/package" || exit 1
 else
     git clone --depth=1 --single-branch --branch "package" https://github.com/chenmozhijin/turboacc "$TMPDIR/package" || exit 1
+    cp -r "$TMPDIR/package/nft-fullcone" "$TMPDIR/turboacc/nft-fullcone" || exit 1
 fi
 
 cp -r "$TMPDIR/turboacc/turboacc/luci-app-turboacc" "$TMPDIR/turboacc/luci-app-turboacc"
