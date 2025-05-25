@@ -62,6 +62,7 @@ fi
 
 cp -r "$TMPDIR/turboacc/turboacc/luci-app-turboacc" "$TMPDIR/turboacc/luci-app-turboacc"
 rm -rf "$TMPDIR/turboacc/turboacc"
+cp -r "$TMPDIR/package/nft-fullcone" "$TMPDIR/turboacc/nft-fullcone" || exit 1
 if [ "$NO_SFE" = false ]; then
     cp -r "$TMPDIR/package/shortcut-fe" "$TMPDIR/turboacc/shortcut-fe"
 fi
