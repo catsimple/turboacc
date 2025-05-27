@@ -12,29 +12,15 @@
  			       struct list_head *br_ip_list);
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -989,6 +989,10 @@ struct sk_buff {
+@@ -1011,6 +1011,9 @@ struct sk_buff {
  	__u8			csum_not_inet:1;
- 	__u8			scm_io_uring:1;
- 
+ #endif
+ 	__u8			unreadable:1;
 +#ifdef CONFIG_SHORTCUT_FE
 +	__u8			fast_forwarded:1;
 +#endif
-+
- #ifdef CONFIG_NET_SCHED
+ #if defined(CONFIG_NET_SCHED) || defined(CONFIG_NET_XGRESS)
  	__u16			tc_index;	/* traffic control index */
- #endif
---- a/include/linux/timer.h
-+++ b/include/linux/timer.h
-@@ -18,6 +18,10 @@ struct timer_list {
- 	void			(*function)(struct timer_list *);
- 	u32			flags;
- 
-+#ifdef CONFIG_SHORTCUT_FE
-+	unsigned long		cust_data;
-+#endif
-+
- #ifdef CONFIG_LOCKDEP
- 	struct lockdep_map	lockdep_map;
  #endif
 --- a/include/net/netfilter/nf_conntrack_ecache.h
 +++ b/include/net/netfilter/nf_conntrack_ecache.h
@@ -49,7 +35,7 @@
  				   const struct nf_ct_event_notifier *nb);
 --- a/net/Kconfig
 +++ b/net/Kconfig
-@@ -467,6 +467,9 @@ config FAILOVER
+@@ -512,6 +512,9 @@ config FAILOVER
  	  migration of VMs with direct attached VFs by failing over to the
  	  paravirtual datapath when the VF is unplugged.
  
@@ -58,11 +44,11 @@
 +
  config ETHTOOL_NETLINK
  	bool "Netlink interface for ethtool"
- 	default y
+ 	select DIMLIB
 --- a/net/bridge/br_if.c
 +++ b/net/bridge/br_if.c
-@@ -768,6 +768,28 @@ void br_port_flags_change(struct net_bri
- 		br_offload_port_state(p);
+@@ -764,6 +764,28 @@ void br_port_flags_change(struct net_bri
+ 		br_recalculate_neigh_suppress_enabled(br);
  }
  
 +void br_dev_update_stats(struct net_device *dev,
@@ -92,7 +78,7 @@
  	struct net_bridge_port *p;
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -3603,9 +3603,17 @@ static int xmit_one(struct sk_buff *skb,
+@@ -3642,9 +3642,17 @@ static int xmit_one(struct sk_buff *skb,
  {
  	unsigned int len;
  	int rc;
@@ -109,9 +95,9 @@
 +	}
 +#endif
  
- #ifdef CONFIG_ETHERNET_PACKET_MANGLE
- 	if (dev->eth_mangle_tx && !(skb = dev->eth_mangle_tx(dev, skb)))
-@@ -5274,6 +5282,11 @@ void netdev_rx_handler_unregister(struct
+ 	len = skb->len;
+ 	trace_net_dev_start_xmit(skb, dev);
+@@ -5488,6 +5496,11 @@ void netdev_rx_handler_unregister(struct
  }
  EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
@@ -123,7 +109,7 @@
  /*
   * Limit the use of PFMEMALLOC reserves to those protocols that implement
   * the special handling of PFMEMALLOC skbs.
-@@ -5322,6 +5335,10 @@ static int __netif_receive_skb_core(stru
+@@ -5536,6 +5549,10 @@ static int __netif_receive_skb_core(stru
  	int ret = NET_RX_DROP;
  	__be16 type;
  
@@ -131,10 +117,10 @@
 +	int (*fast_recv)(struct sk_buff *skb);
 +#endif
 +
- 	net_timestamp_check(!READ_ONCE(netdev_tstamp_prequeue), skb);
+ 	net_timestamp_check(!READ_ONCE(net_hotdata.tstamp_prequeue), skb);
  
  	trace_netif_receive_skb(skb);
-@@ -5359,6 +5376,15 @@ another_round:
+@@ -5574,6 +5591,15 @@ another_round:
  			goto out;
  	}
  
