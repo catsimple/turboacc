@@ -57,7 +57,6 @@ if [ -n "$LOCAL_PACKAGE" ]; then
     cp -RT "$LOCAL_PACKAGE" "$TMPDIR/package" || exit 1
 else
     git clone --depth=1 --single-branch --branch "package" https://github.com/catsimple/turboacc "$TMPDIR/package" || exit 1
-    cp -r "$TMPDIR/package/nft-fullcone" "$TMPDIR/turboacc/nft-fullcone" || exit 1
 fi
 
 cp -r "$TMPDIR/turboacc/turboacc/luci-app-turboacc" "$TMPDIR/turboacc/luci-app-turboacc"
