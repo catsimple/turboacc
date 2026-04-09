@@ -54,3 +54,17 @@ msgstr "流量分载"
 
 msgid "MTK WED WO offloading"
 msgstr "MTK 无线硬件加速"
+msgid "Default qdisc"
+msgstr "默认 qdisc"
+
+msgid "Set net.core.default_qdisc for new interfaces. If interfaces are selected below, apply it immediately with tc."
+msgstr "为新接口设置 net.core.default_qdisc；如果下方选择了接口，也会立即用 tc 应用。"
+
+msgid "Apply qdisc to interfaces now"
+msgstr "立即对接口应用 qdisc"
+
+msgid "Select interfaces"
+msgstr "选择接口"
+
+msgid "Choose the network interfaces that should receive the qdisc immediately. New interfaces still follow net.core.default_qdisc."
+msgstr "选择需要立即应用 qdisc 的网络接口。新建接口仍会继承 net.core.default_qdisc。"

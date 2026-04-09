@@ -11,6 +11,9 @@ EOF
 	uci set turboacc.config.sw_flow='0' && \
 	uci set turboacc.config.hw_flow='0'
 
+uci -q get turboacc.config.default_qdisc >/dev/null || \
+	uci set turboacc.config.default_qdisc='fq_codel'
+
 uci commit turboacc
 
 exit 0

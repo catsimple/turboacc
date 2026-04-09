@@ -10,6 +10,65 @@ EXTRA_COMMANDS="check_status"
 EXTRA_HELP="	check_status Check running status of utils"
 
 restart_utils="true"
+default_qdisc_conf="/etc/sysctl.d/99-turboacc-qdisc.conf"
+default_qdisc_prev="/var/run/turboacc.default_qdisc.prev"
+
+write_default_qdisc_conf(){
+	local qdisc="$1"
+	local prev
+	local tmp="${default_qdisc_conf}.tmp.$$"
+
+	[ -n "$qdisc" ] || return 0
+
+	mkdir -p /etc/sysctl.d
+	if [ ! -f "$default_qdisc_prev" ]; then
+		prev="$(sysctl -n net.core.default_qdisc 2>/dev/null)"
+		[ -n "$prev" ] && echo "$prev" > "$default_qdisc_prev"
+	fi
+	if [ -f "$default_qdisc_conf" ]; then
+		grep -v '^net\.core\.default_qdisc=' "$default_qdisc_conf" > "$tmp"
+	else
+		: > "$tmp"
+	fi
+	echo "net.core.default_qdisc=$qdisc" >> "$tmp"
+	mv "$tmp" "$default_qdisc_conf"
+}
+
+remove_default_qdisc_conf(){
+	local tmp="${default_qdisc_conf}.tmp.$$"
+	local prev
+
+	if [ -f "$default_qdisc_prev" ]; then
+		prev="$(cat "$default_qdisc_prev" 2>/dev/null)"
+		[ -n "$prev" ] && sysctl -w net.core.default_qdisc="$prev" >/dev/null 2>&1
+		rm -f "$default_qdisc_prev"
+	fi
+	[ -f "$default_qdisc_conf" ] || return 0
+	grep -v '^net\.core\.default_qdisc=' "$default_qdisc_conf" > "$tmp"
+	if [ -s "$tmp" ]; then
+		mv "$tmp" "$default_qdisc_conf"
+	else
+		rm -f "$tmp" "$default_qdisc_conf"
+	fi
+}
+
+qdisc_supports_root_replace(){
+	case "$1" in
+		cake|fq_codel|fq|fq_pie|codel|pie|sfq)
+			return 0
+		;;
+	esac
+	return 1
+}
+
+apply_qdisc_to_iface(){
+	local iface="$1"
+
+	[ -n "$iface" ] || return 0
+	[ -d "/sys/class/net/$iface" ] || return 0
+	tc qdisc replace dev "$iface" root "$default_qdisc" >/dev/null 2>&1 || \
+		logger -t turboacc "Failed to apply qdisc '$default_qdisc' to '$iface'"
+}
 
 inital_conf(){
 	config_load "turboacc"
@@ -20,8 +79,11 @@ inital_conf(){
 	config_get "bbr_cca" "config" "bbr_cca" "0"
 	config_get "fullcone_nat" "config" "fullcone_nat" "0"
 	config_get "fullcone6" "config" "fullcone6" "0"
+	config_get "default_qdisc" "config" "default_qdisc" "fq_codel"
 
 	[ ! -e "/lib/modules/$(uname -r)/nft_flow_offload.ko" ] && { sw_flow="0"; hw_flow="0"; }
+	[ "${sw_flow}" -ne "1" ] && hw_flow="0"
+	! grep -Eq 'filogic|mt762' /etc/openwrt_release && hw_flow="0"
 	[ ! -e "/lib/modules/$(uname -r)/tcp_bbr.ko" ] && bbr_cca="0"
 }
 
@@ -62,6 +124,20 @@ unload_wed() {
 start(){
 	inital_conf
 
+	if [ "${bbr_cca}" -eq "1" ]; then
+		write_default_qdisc_conf "$default_qdisc"
+		sysctl -w net.core.default_qdisc="$default_qdisc" >/dev/null 2>&1 || \
+			logger -t turboacc "Failed to set net.core.default_qdisc='$default_qdisc'"
+
+		if qdisc_supports_root_replace "$default_qdisc"; then
+			config_list_foreach "config" "default_qdisc_ifaces" apply_qdisc_to_iface
+		else
+			logger -t turboacc "Skip tc qdisc replace for '$default_qdisc': not a simple root qdisc"
+		fi
+	else
+		remove_default_qdisc_conf
+	fi
+
 	uci set firewall.@defaults[0].flow_offloading="${sw_flow}"
 	uci set firewall.@defaults[0].flow_offloading_hw="${hw_flow}"
 	uci set firewall.@defaults[0].fullcone="${fullcone_nat}"
@@ -93,6 +169,8 @@ start(){
 
 stop(){
 	inital_conf
+
+	remove_default_qdisc_conf
 
 	uci set firewall.@defaults[0].flow_offloading="${sw_flow}"
 	uci set firewall.@defaults[0].flow_offloading_hw="${hw_flow}"

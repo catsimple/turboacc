@@ -1,20 +1,20 @@
 # luci-app-turboacc
 
-[中文](https://github.com/chenmozhijin/turboacc/blob/luci/README.md)|English
+[中文](https://github.com/catsimple/turboacc/blob/luci/README.md)|English
 
 A turboacc package for official OpenWrt (22.03/23.05) firewall4, including the following features: software flow offloading, Shortcut-FE, full-cone NAT, and BBR congestion control algorithm.
 
 Compilation and Testing:
 
-- TEST Status: [![TEST Status](https://github.com/chenmozhijin/turboacc/actions/workflows/test.yml/badge.svg)](https://github.com/chenmozhijin/turboacc/actions/workflows/test.yml)
-- Automatic Dependency Updates: [![UPDATE Status](https://github.com/chenmozhijin/turboacc/actions/workflows/update.yml/badge.svg)](https://github.com/chenmozhijin/turboacc/actions/workflows/update.yml)
+- TEST Status: [![TEST Status](https://github.com/catsimple/turboacc/actions/workflows/test.yml/badge.svg)](https://github.com/catsimple/turboacc/actions/workflows/test.yml)
+- Automatic Dependency Updates: [![UPDATE Status](https://github.com/catsimple/turboacc/actions/workflows/update.yml/badge.svg)](https://github.com/catsimple/turboacc/actions/workflows/update.yml)
 
 ## Usage
 
 - In the directory where the OpenWrt source code is located, execute the following commands:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && bash add_turboacc.sh
+curl -sSL https://raw.githubusercontent.com/catsimple/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && bash add_turboacc.sh
 ```
 
 > This will download luci-app-turboacc, nft-fullcone, replace firewall4, libnftnl, nftables and apply 952 and 953 patches.
@@ -27,7 +27,7 @@ make menuconfig
 
 Navigate to > LuCI > 3. Applications and select "luci-app-turboacc".
 
-If you want to use GitHub Actions for cloud compiling OpenWrt with the official source code and turboacc, you can refer to this repository:  [OpenWrt-K](https://github.com/chenmozhijin/OpenWrt-K).
+If you want to use GitHub Actions for cloud compiling OpenWrt with the official source code and turboacc, you can refer to this repository:  [OpenWrt-K](https://github.com/catsimple/OpenWrt-K).
 
 ## Notes
 
@@ -37,8 +37,8 @@ If you want to use GitHub Actions for cloud compiling OpenWrt with the official 
 
 ## Plugin Preview
 
-![Plugin Preview](https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/img/1.png)
-![Effect preview](https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/img/2.png)
+![Plugin Preview](https://raw.githubusercontent.com/catsimple/turboacc/luci/img/1.png)
+![Effect preview](https://raw.githubusercontent.com/catsimple/turboacc/luci/img/2.png)
 
 ## About
 
@@ -47,11 +47,11 @@ The luci-app-turboacc in this repository is based on the [luci-app-turboacc](htt
 Dependencies for Each Feature:
 
 - Software Flow Offloading (Flow Offload): [kmod-nft-offload](https://github.com/openwrt/openwrt/blob/80edfaf675364835e6d2e17d97ebec6afc6b2103/package/kernel/linux/modules/netfilter.mk#L1182C1-L1199C42) (Included in official OpenWrt)
-- Shortcut-FE: [shortcut-fe](https://github.com/chenmozhijin/turboacc/tree/package/shortcut-fe), 952 patch, 953 patch
+- Shortcut-FE: [shortcut-fe](https://github.com/catsimple/turboacc/tree/package/shortcut-fe), 952 patch, 953 patch
 - Full Cone NAT (FULLCONE NAT): [nft-fullcone](https://github.com/fullcone-nat-nftables/nft-fullcone), patched firewall4, libnftnl, nftables, and 952 patch
 - BBR Congestion Control Algorithm: [kmod-tcp-bbr](https://github.com/openwrt/openwrt/blob/80edfaf675364835e6d2e17d97ebec6afc6b2103/package/kernel/linux/modules/netsupport.mk#L1036C1-L1057C38) (Included in official OpenWrt)
 
-Unofficial dependencies for OpenWrt not included by default are available in the [package branch](https://github.com/chenmozhijin/turboacc/tree/package).
+Unofficial dependencies for OpenWrt not included by default are available in the [package branch](https://github.com/catsimple/turboacc/tree/package).
 
 ## Acknowledgments
 
