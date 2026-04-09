@@ -1,0 +1,31 @@
+#!/bin/sh
+
+[ "$ACTION" = "ifup" ] || exit 0
+
+DEVICE="${DEVICE:-$INTERFACE}"
+[ -n "$DEVICE" ] || exit 0
+[ -d "/sys/class/net/$DEVICE" ] || exit 0
+
+bbr_cca="$(uci -q get turboacc.config.bbr_cca 2>/dev/null)"
+[ "$bbr_cca" = "1" ] || exit 0
+
+default_qdisc="$(uci -q get turboacc.config.default_qdisc 2>/dev/null)"
+[ -n "$default_qdisc" ] || default_qdisc="fq_codel"
+
+case "$default_qdisc" in
+	cake|fq_codel|fq|fq_pie|codel|pie|sfq)
+		;;
+	*)
+		exit 0
+		;;
+esac
+
+for iface in $(uci -q show turboacc | sed -n "s/^turboacc\\.config\\.default_qdisc_ifaces='\\(.*\\)'$/\\1/p"); do
+	[ "$iface" = "$DEVICE" ] && {
+		tc qdisc replace dev "$DEVICE" root "$default_qdisc" >/dev/null 2>&1 && \
+			logger -t turboacc "Applied qdisc '$default_qdisc' to '$DEVICE' on ifup"
+		exit 0
+	}
+done
+
+exit 0

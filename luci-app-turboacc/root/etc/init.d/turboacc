@@ -204,6 +204,14 @@ restart(){
 	/etc/init.d/firewall restart >"/dev/null" 2>&1
 }
 
+reload_service(){
+	restart
+}
+
+reload(){
+	restart
+}
+
 check_status(){
 	case "$1" in
 	"fastpath")

@@ -4,6 +4,23 @@
 		<tr><td width="33%"><%:Flow Offloading%></td><td id="_fastpath_state"><em><%:Collecting data...%></em></td></tr>
 		<tr><td width="33%"><%:FullCone NAT%></td><td id="_fullconenat_state"><em><%:Collecting data...%></em></td></tr>
 		<tr><td width="33%"><%:BBR CCA%></td><td id="_bbr_state"><em><%:Collecting data...%></em></td></tr>
+		<tr><td width="33%"><%:TCP Congestion Control%></td><td id="_tcpcc_state"><em><%:Collecting data...%></em></td></tr>
+		<tr><td width="33%"><%:Default qdisc%></td><td id="_default_qdisc_state"><em><%:Collecting data...%></em></td></tr>
+	</table>
+</fieldset>
+
+<fieldset class="cbi-section">
+	<legend><%:Interface qdisc status%></legend>
+	<table width="100%" cellspacing="10" id="_turboacc_qdisc_table">
+		<thead>
+			<tr>
+				<th width="20%"><%:Interface%></th>
+				<th><%:qdisc%></th>
+			</tr>
+		</thead>
+		<tbody id="_qdisc_iface_body">
+			<tr><td colspan="2"><em><%:Collecting data...%></em></td></tr>
+		</tbody>
 	</table>
 </fieldset>
 
@@ -11,11 +28,57 @@
 	var fastpath_state = document.getElementById('_fastpath_state');
 	var bbr_state = document.getElementById('_bbr_state');
 	var fullconenat_state = document.getElementById('_fullconenat_state');
+	var tcpcc_state = document.getElementById('_tcpcc_state');
+	var default_qdisc_state = document.getElementById('_default_qdisc_state');
+	var qdisc_iface_body = document.getElementById('_qdisc_iface_body');
+
+	function escape_html(value) {
+		return String(value || '').replace(/[&<>"']/g, function(ch) {
+			switch (ch) {
+			case '&': return '&amp;';
+			case '<': return '&lt;';
+			case '>': return '&gt;';
+			case '"': return '&quot;';
+			case '\'': return '&#39;';
+			default: return ch;
+			}
+		});
+	}
+
+	function render_iface_row(item) {
+		if (!item) {
+			return '';
+		}
+
+		if (item.status === 'missing') {
+			return '<tr><td>' + escape_html(item.iface) + '</td><td><em><font color=red><%:NOT RUNNING%></font></em></td></tr>';
+		}
+
+		if (item.status === 'invalid') {
+			return '<tr><td>' + escape_html(item.iface) + '</td><td><em><font color=red><%:INVALID%></font></em></td></tr>';
+		}
+
+		var line = item.line ? escape_html(item.line) : escape_html(item.status);
+		return '<tr><td>' + escape_html(item.iface) + '</td><td><em><b><font color=green>' + escape_html(item.status) + '</font></b></em><br/><small>' + line + '</small></td></tr>';
+	}
+
 	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "network", "turboacc", "status")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			fastpath_state.innerHTML = status.fastpath_state ? '<em><b><font color=green><%=luci.sys.exec("/etc/init.d/turboacc check_status fastpath")%></font></b></em>' : '<em><b><font color=red><%:NOT RUNNING%></font></b></em>';
 			fullconenat_state.innerHTML = status.fullconenat_state ? '<em><b><font color=green><%:RUNNING%></font></b></em>' : '<em><b><font color=red><%:NOT RUNNING%></font></b></em>';
 			bbr_state.innerHTML = status.bbr_state ? '<em><b><font color=green><%:RUNNING%></font></b></em>' : '<em><b><font color=red><%:NOT RUNNING%></font></b></em>';
+			tcpcc_state.innerHTML = '<em><b><font color=green>' + escape_html(status.tcp_congestion_control || '') + '</font></b></em>';
+			default_qdisc_state.innerHTML = '<em><b><font color=green>' + escape_html(status.default_qdisc || '') + '</font></b></em>';
+
+			var rows = [];
+			if (status.iface_qdisc_states && status.iface_qdisc_states.length > 0) {
+				for (var i = 0; i < status.iface_qdisc_states.length; i++) {
+					rows.push(render_iface_row(status.iface_qdisc_states[i]));
+				}
+			} else {
+				rows.push('<tr><td colspan="2"><em><%:No interfaces selected%></em></td></tr>');
+			}
+			qdisc_iface_body.innerHTML = rows.join('');
 		}
 	});
 //]]>

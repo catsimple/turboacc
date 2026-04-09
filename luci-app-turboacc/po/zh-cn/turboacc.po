@@ -61,10 +61,27 @@ msgid "Set net.core.default_qdisc for new interfaces. If interfaces are selected
 msgstr "为新接口设置 net.core.default_qdisc；如果下方选择了接口，也会立即用 tc 应用。"
 
 msgid "Apply qdisc to interfaces now"
-msgstr "立即对接口应用 qdisc"
+msgstr "应用 qdisc 的接口"
 
 msgid "Select interfaces"
 msgstr "选择接口"
 
 msgid "Choose the network interfaces that should receive the qdisc immediately. New interfaces still follow net.core.default_qdisc."
 msgstr "选择需要立即应用 qdisc 的网络接口。新建接口仍会继承 net.core.default_qdisc。"
+msgid "TCP Congestion Control"
+msgstr "TCP 拥塞控制算法"
+
+msgid "Interface qdisc status"
+msgstr "接口 qdisc 状态"
+
+msgid "Interface"
+msgstr "接口"
+
+msgid "qdisc"
+msgstr "qdisc"
+
+msgid "INVALID"
+msgstr "无效"
+
+msgid "No interfaces selected"
+msgstr "未选择接口"
